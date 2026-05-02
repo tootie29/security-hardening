@@ -17,6 +17,19 @@ final class SettingsPage {
 		add_action( 'admin_init', [ $this, 'register_settings' ] );
 		add_action( 'admin_post_rm_sh_reset_defaults', [ $this, 'handle_reset' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_filter( 'plugin_action_links_' . plugin_basename( RM_SH_FILE ), [ $this, 'add_action_links' ] );
+	}
+
+	/** @param array<int|string,string> $links */
+	public function add_action_links( array $links ): array {
+		$url      = admin_url( 'options-general.php?page=' . self::PAGE_SLUG );
+		$settings = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( $url ),
+			esc_html__( 'Settings', 'richardmedina-security-hardening' )
+		);
+		array_unshift( $links, $settings );
+		return $links;
 	}
 
 	public function enqueue( string $hook ): void {
