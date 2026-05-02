@@ -3,7 +3,7 @@
  * Plugin Name:       RichardMedina Security Hardening
  * Plugin URI:        https://richardmedina.com.au/plugins/richardmedina-security-hardening
  * Description:       Hardens WordPress against injection attempts and common attack vectors via a request firewall and a set of hardening toggles.
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Richard Medina
@@ -18,7 +18,7 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'RM_SH_VERSION', '0.1.0' );
+define( 'RM_SH_VERSION', '0.1.1' );
 define( 'RM_SH_FILE', __FILE__ );
 define( 'RM_SH_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RM_SH_URL', plugin_dir_url( __FILE__ ) );
