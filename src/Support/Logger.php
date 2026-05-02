@@ -73,4 +73,57 @@ final class Logger {
 		}
 		return implode( "\n", array_slice( $all, -$lines ) );
 	}
+
+	public static function current_log_path(): string {
+		return self::log_dir() . '/guard-' . gmdate( 'Y-m-d' ) . '.log';
+	}
+
+	public static function current_log_size(): int {
+		$file = self::current_log_path();
+		return is_readable( $file ) ? (int) @filesize( $file ) : 0;
+	}
+
+	/**
+	 * Returns the most recent firewall.* event from today's log, parsed.
+	 *
+	 * @return array{timestamp:int,level:string,event:string,context:array<string,mixed>}|null
+	 */
+	public static function last_firewall_event(): ?array {
+		$file = self::current_log_path();
+		if ( ! is_readable( $file ) ) {
+			return null;
+		}
+		$lines = @file( $file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+		if ( ! is_array( $lines ) ) {
+			return null;
+		}
+		for ( $i = count( $lines ) - 1; $i >= 0; $i-- ) {
+			$line = $lines[ $i ];
+			if ( ! str_contains( $line, 'firewall.' ) ) {
+				continue;
+			}
+			if ( ! preg_match( '/^\[([^\]]+)\] \[([A-Z]+)\] (\S+)\s*(\{.*\})?$/', $line, $m ) ) {
+				continue;
+			}
+			$ts  = strtotime( $m[1] );
+			$ctx = ! empty( $m[4] ) ? json_decode( $m[4], true ) : [];
+			return [
+				'timestamp' => $ts !== false ? $ts : 0,
+				'level'     => $m[2],
+				'event'     => $m[3],
+				'context'   => is_array( $ctx ) ? $ctx : [],
+			];
+		}
+		return null;
+	}
+
+	public static function format_size( int $bytes ): string {
+		if ( $bytes < 1024 ) {
+			return $bytes . ' B';
+		}
+		if ( $bytes < 1024 * 1024 ) {
+			return number_format( $bytes / 1024, 1 ) . ' KB';
+		}
+		return number_format( $bytes / ( 1024 * 1024 ), 1 ) . ' MB';
+	}
 }
