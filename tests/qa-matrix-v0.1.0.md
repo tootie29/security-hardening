@@ -78,6 +78,9 @@ Test each toggle on, then off, observing the side effect.
 | F5 | Remove generator | `<meta name="generator">` absent in frontend HTML. | Tag present. | |
 | F6 | DISALLOW_FILE_EDIT advisory | If wp-config doesn't define it → admin notice on every screen. | Notice gone after defining the constant. | |
 | F7 | Disable application passwords | Profile screen has app passwords section hidden / `wp_is_application_passwords_available()` returns false. | Section visible again. | |
+| F8 | Disable plugin install | As Administrator, `Plugins → Add New` link absent in admin menu; visiting `/wp-admin/plugin-install.php` → "Sorry, you are not allowed to install plugins on this site." `/wp-admin/update.php?action=upload-plugin` (zip upload) → same denial. `current_user_can( 'install_plugins' )` returns false. | Add New link returns; plugin install + zip upload work normally. | |
+| F9 | Disable plugin file editor | `Tools → Plugin File Editor` link absent; `/wp-admin/plugin-editor.php` → "Sorry, you are not allowed to edit plugins for this site." `current_user_can( 'edit_plugins' )` returns false. Also confirm even when `DISALLOW_FILE_EDIT` is **not** defined in wp-config — toggle alone is sufficient. | Plugin File Editor link returns; editor reachable. | |
+| F10 | Disable WP core update | `Dashboard → Updates` shows no core update offer (or shows offer but "Update to version X" button is removed/disabled); `/wp-admin/update-core.php` action `do-core-upgrade` → "Sorry, you are not allowed to update this site." `current_user_can( 'update_core' )` returns false. Plugin/theme updates listed on the same screen still work. | Core update flow reachable again. | |
 
 ## G. Diagnostics
 
