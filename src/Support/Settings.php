@@ -25,13 +25,16 @@ final class Settings {
 			'firewall_param_allowlist' => 'content,post_content,description',
 
 			// Hardening.
-			'harden_disable_file_edit'   => true,
-			'harden_disable_xmlrpc'      => true,
-			'harden_block_php_uploads'   => true,
-			'harden_block_user_enum'     => true,
-			'harden_remove_generator'    => true,
-			'harden_disable_rest_users'  => true,
-			'harden_disable_app_passwords' => false,
+			'harden_disable_file_edit'      => true,
+			'harden_disable_xmlrpc'         => true,
+			'harden_block_php_uploads'      => true,
+			'harden_block_user_enum'        => true,
+			'harden_remove_generator'       => true,
+			'harden_disable_rest_users'     => true,
+			'harden_disable_app_passwords'  => false,
+			'harden_disable_plugin_install' => false,
+			'harden_disable_plugin_edit'    => false,
+			'harden_disable_core_update'    => false,
 		];
 	}
 
@@ -72,6 +75,8 @@ final class Settings {
 			'harden_block_php_uploads', 'harden_block_user_enum',
 			'harden_remove_generator', 'harden_disable_rest_users',
 			'harden_disable_app_passwords',
+			'harden_disable_plugin_install', 'harden_disable_plugin_edit',
+			'harden_disable_core_update',
 		];
 
 		foreach ( $bool_keys as $key ) {

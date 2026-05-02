@@ -42,6 +42,14 @@ final class Hardener {
 			add_filter( 'wp_is_application_passwords_available', '__return_false' );
 		}
 
+		if (
+			Settings::get( 'harden_disable_plugin_install', false )
+			|| Settings::get( 'harden_disable_plugin_edit', false )
+			|| Settings::get( 'harden_disable_core_update', false )
+		) {
+			add_filter( 'map_meta_cap', [ $this, 'deny_admin_caps' ], 10, 2 );
+		}
+
 		if ( Settings::get( 'harden_disable_file_edit', true ) ) {
 			add_action( 'admin_init', [ $this, 'warn_if_file_edit_enabled' ] );
 		}
@@ -70,6 +78,36 @@ final class Hardener {
 			wp_safe_redirect( home_url( '/' ), 301 );
 			exit;
 		}
+	}
+
+	/**
+	 * Deny primitive caps used by the plugin install / file editor / core update screens.
+	 *
+	 * Using map_meta_cap with `do_not_allow` short-circuits the cap check for every
+	 * user, including super admins. This is the recommended way to block these
+	 * actions without touching wp-config.php constants.
+	 *
+	 * @param array<int,string> $caps
+	 */
+	public function deny_admin_caps( array $caps, string $cap ): array {
+		$denied = [];
+
+		if ( Settings::get( 'harden_disable_plugin_install', false ) ) {
+			$denied[] = 'install_plugins';
+			$denied[] = 'upload_plugins';
+		}
+		if ( Settings::get( 'harden_disable_plugin_edit', false ) ) {
+			$denied[] = 'edit_plugins';
+		}
+		if ( Settings::get( 'harden_disable_core_update', false ) ) {
+			$denied[] = 'update_core';
+		}
+
+		if ( in_array( $cap, $denied, true ) ) {
+			return [ 'do_not_allow' ];
+		}
+
+		return $caps;
 	}
 
 	/** @param array<string,mixed> $endpoints */

@@ -5,7 +5,7 @@
 Initial release.
 
 - Request firewall (off / monitor / block) covering SQLi, XSS, LFI/RFI, and known web-shell signatures.
-- Hardening toggles: disable XML-RPC, block PHP execution in `uploads/` via `.htaccess`, block `?author=` user enumeration, hide `/wp/v2/users` for unauthenticated requests, remove generator meta, DISALLOW_FILE_EDIT advisory notice, optional disable of application passwords.
+- Hardening toggles: disable XML-RPC, block PHP execution in `uploads/` via `.htaccess`, block `?author=` user enumeration, hide `/wp/v2/users` for unauthenticated requests, remove generator meta, DISALLOW_FILE_EDIT advisory notice, optional disable of application passwords, disable installing/uploading new plugins (`install_plugins`, `upload_plugins`), disable the in-admin plugin file editor (`edit_plugins`), disable WordPress core updates (`update_core`).
 - Settings page under **Settings → RM Hardening** with Status, Firewall, Hardening, Diagnostics tabs.
 - File-based logger in `uploads/rm-sh-logs/` (htaccess-protected). Block events always logged; other events require Debug mode.
 - Diagnostics action with copy-paste-ready report.

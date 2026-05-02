@@ -209,13 +209,16 @@ final class SettingsPage {
 
 	private function render_hardening_tab( array $opts ): void {
 		$rows = [
-			'harden_disable_xmlrpc'        => __( 'Disable XML-RPC and remove X-Pingback header', 'richardmedina-security-hardening' ),
-			'harden_block_php_uploads'     => __( 'Block PHP execution in uploads/ via .htaccess', 'richardmedina-security-hardening' ),
-			'harden_block_user_enum'       => __( 'Block ?author= user enumeration on the front end', 'richardmedina-security-hardening' ),
-			'harden_disable_rest_users'    => __( 'Hide /wp/v2/users REST endpoint for unauthenticated requests', 'richardmedina-security-hardening' ),
-			'harden_remove_generator'      => __( 'Remove WordPress generator meta tag', 'richardmedina-security-hardening' ),
-			'harden_disable_file_edit'     => __( 'Show warning if DISALLOW_FILE_EDIT is not set in wp-config.php', 'richardmedina-security-hardening' ),
-			'harden_disable_app_passwords' => __( 'Disable application passwords', 'richardmedina-security-hardening' ),
+			'harden_disable_xmlrpc'         => __( 'Disable XML-RPC and remove X-Pingback header', 'richardmedina-security-hardening' ),
+			'harden_block_php_uploads'      => __( 'Block PHP execution in uploads/ via .htaccess', 'richardmedina-security-hardening' ),
+			'harden_block_user_enum'        => __( 'Block ?author= user enumeration on the front end', 'richardmedina-security-hardening' ),
+			'harden_disable_rest_users'     => __( 'Hide /wp/v2/users REST endpoint for unauthenticated requests', 'richardmedina-security-hardening' ),
+			'harden_remove_generator'       => __( 'Remove WordPress generator meta tag', 'richardmedina-security-hardening' ),
+			'harden_disable_file_edit'      => __( 'Show warning if DISALLOW_FILE_EDIT is not set in wp-config.php', 'richardmedina-security-hardening' ),
+			'harden_disable_app_passwords'  => __( 'Disable application passwords', 'richardmedina-security-hardening' ),
+			'harden_disable_plugin_install' => __( 'Disable installing / uploading new plugins (denies install_plugins, upload_plugins)', 'richardmedina-security-hardening' ),
+			'harden_disable_plugin_edit'    => __( 'Disable the in-admin plugin file editor (denies edit_plugins)', 'richardmedina-security-hardening' ),
+			'harden_disable_core_update'    => __( 'Disable WordPress core updates (denies update_core)', 'richardmedina-security-hardening' ),
 		];
 		?>
 		<table class="form-table" role="presentation">
@@ -245,6 +248,8 @@ final class SettingsPage {
 				'harden_block_user_enum', 'harden_disable_rest_users',
 				'harden_remove_generator', 'harden_disable_file_edit',
 				'harden_disable_app_passwords',
+				'harden_disable_plugin_install', 'harden_disable_plugin_edit',
+				'harden_disable_core_update',
 			],
 		];
 
