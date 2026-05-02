@@ -1,0 +1,28 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build artifacts
+*.zip
+/build/
+/dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.idea/
+.vscode/
+*.sublime-*
+.DS_Store
+Thumbs.db
+
+# PHP / tooling
+.phpunit.result.cache
+.phpcs-cache
+/.php-cs-fixer.cache
+
+# Plugin runtime artifacts (these belong to the install, not the repo)
+/languages/*.mo

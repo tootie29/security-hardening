@@ -1,0 +1,4 @@
+.rm-sh-wrap .nav-tab-wrapper { margin-bottom: 1em; }
+.rm-sh-wrap .form-table th { width: 260px; }
+.rm-sh-wrap .rm-sh-version { color: #6c7781; margin-top: 2em; font-size: 12px; }
+.rm-sh-wrap textarea.code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
