@@ -209,25 +209,54 @@ final class SettingsPage {
 
 	private function render_hardening_tab( array $opts ): void {
 		$rows = [
-			'harden_disable_xmlrpc'         => __( 'Disable XML-RPC and remove X-Pingback header', 'richardmedina-security-hardening' ),
-			'harden_block_php_uploads'      => __( 'Block PHP execution in uploads/ via .htaccess', 'richardmedina-security-hardening' ),
-			'harden_block_user_enum'        => __( 'Block ?author= user enumeration on the front end', 'richardmedina-security-hardening' ),
-			'harden_disable_rest_users'     => __( 'Hide /wp/v2/users REST endpoint for unauthenticated requests', 'richardmedina-security-hardening' ),
-			'harden_remove_generator'       => __( 'Remove WordPress generator meta tag', 'richardmedina-security-hardening' ),
-			'harden_disable_file_edit'      => __( 'Show warning if DISALLOW_FILE_EDIT is not set in wp-config.php', 'richardmedina-security-hardening' ),
-			'harden_disable_app_passwords'  => __( 'Disable application passwords', 'richardmedina-security-hardening' ),
-			'harden_disable_plugin_install' => __( 'Disable installing / uploading new plugins (denies install_plugins, upload_plugins)', 'richardmedina-security-hardening' ),
-			'harden_disable_plugin_edit'    => __( 'Disable the in-admin plugin file editor (denies edit_plugins)', 'richardmedina-security-hardening' ),
-			'harden_disable_core_update'    => __( 'Disable WordPress core updates (denies update_core)', 'richardmedina-security-hardening' ),
+			'harden_disable_xmlrpc'         => [
+				'label' => __( 'Disable XML-RPC and remove X-Pingback header', 'richardmedina-security-hardening' ),
+			],
+			'harden_block_php_uploads'      => [
+				'label'       => __( 'Block PHP execution in uploads/ via .htaccess', 'richardmedina-security-hardening' ),
+				'description' => __( 'Apache only — nginx hosts must add an equivalent location block in their server config.', 'richardmedina-security-hardening' ),
+			],
+			'harden_block_user_enum'        => [
+				'label' => __( 'Block ?author= user enumeration on the front end', 'richardmedina-security-hardening' ),
+			],
+			'harden_disable_rest_users'     => [
+				'label'       => __( 'Hide /wp/v2/users REST endpoint for unauthenticated requests', 'richardmedina-security-hardening' ),
+				'description' => __( 'Logged-in requests still see the endpoint, so the block editor user picker keeps working.', 'richardmedina-security-hardening' ),
+			],
+			'harden_remove_generator'       => [
+				'label' => __( 'Remove WordPress generator meta tag', 'richardmedina-security-hardening' ),
+			],
+			'harden_disable_file_edit'      => [
+				'label' => __( 'Show warning if DISALLOW_FILE_EDIT is not set in wp-config.php', 'richardmedina-security-hardening' ),
+			],
+			'harden_disable_app_passwords'  => [
+				'label'       => __( 'Disable application passwords', 'richardmedina-security-hardening' ),
+				'description' => __( 'Breaks the WP mobile app, Jetpack, and most headless / API integrations.', 'richardmedina-security-hardening' ),
+			],
+			'harden_disable_plugin_install' => [
+				'label'       => __( 'Disable installing / uploading new plugins (denies install_plugins, upload_plugins)', 'richardmedina-security-hardening' ),
+				'description' => __( 'Removes the "Add New" link and blocks the plugin install screen and the zip upload action.', 'richardmedina-security-hardening' ),
+			],
+			'harden_disable_plugin_edit'    => [
+				'label'       => __( 'Disable the in-admin plugin file editor (denies edit_plugins)', 'richardmedina-security-hardening' ),
+				'description' => __( 'Blocks Tools → Plugin File Editor without requiring DISALLOW_FILE_EDIT in wp-config.php.', 'richardmedina-security-hardening' ),
+			],
+			'harden_disable_core_update'    => [
+				'label'       => __( 'Disable WordPress core updates (denies update_core)', 'richardmedina-security-hardening' ),
+				'description' => __( 'The Updates screen still loads (so plugin/theme updates remain available), but the core upgrade action is blocked with "Sorry, you are not allowed to update this site."', 'richardmedina-security-hardening' ),
+			],
 		];
 		?>
 		<table class="form-table" role="presentation">
-			<?php foreach ( $rows as $key => $label ) : ?>
+			<?php foreach ( $rows as $key => $row ) : ?>
 				<tr>
-					<th scope="row"><?php echo esc_html( $label ); ?></th>
+					<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
 					<td>
 						<label><input type="checkbox" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[<?php echo esc_attr( $key ); ?>]" value="1" <?php checked( ! empty( $opts[ $key ] ) ); ?> />
 						<?php esc_html_e( 'Enabled', 'richardmedina-security-hardening' ); ?></label>
+						<?php if ( ! empty( $row['description'] ) ) : ?>
+							<p class="description"><?php echo esc_html( $row['description'] ); ?></p>
+						<?php endif; ?>
 					</td>
 				</tr>
 			<?php endforeach; ?>
