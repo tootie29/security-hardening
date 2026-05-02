@@ -38,6 +38,10 @@ final class Hardener {
 			add_filter( 'rest_endpoints', [ $this, 'restrict_rest_user_endpoints' ] );
 		}
 
+		if ( Settings::get( 'harden_restrict_rest_external', false ) ) {
+			add_filter( 'rest_authentication_errors', [ $this, 'restrict_rest_external' ], 99 );
+		}
+
 		if ( Settings::get( 'harden_disable_app_passwords', false ) ) {
 			add_filter( 'wp_is_application_passwords_available', '__return_false' );
 		}
@@ -108,6 +112,65 @@ final class Hardener {
 		}
 
 		return $caps;
+	}
+
+	/**
+	 * Block REST API requests that originate from outside this site.
+	 *
+	 * Allows when:
+	 *  - Origin or Referer matches the site host (covers admin block editor + same-origin frontend)
+	 *  - REMOTE_ADDR is loopback (covers wp-cron, server-to-server localhost calls)
+	 *
+	 * Otherwise denies with 403. Cookie-authenticated admin requests still pass
+	 * because they are sent same-origin by the browser.
+	 *
+	 * @param mixed $errors
+	 */
+	public function restrict_rest_external( $errors ) {
+		if ( $errors instanceof \WP_Error ) {
+			return $errors;
+		}
+
+		$home_host = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+		if ( $home_host === '' ) {
+			return $errors;
+		}
+
+		$origin  = isset( $_SERVER['HTTP_ORIGIN'] ) ? (string) $_SERVER['HTTP_ORIGIN'] : '';
+		$referer = isset( $_SERVER['HTTP_REFERER'] ) ? (string) $_SERVER['HTTP_REFERER'] : '';
+
+		$origin_host  = $origin !== '' ? (string) wp_parse_url( $origin, PHP_URL_HOST ) : '';
+		$referer_host = $referer !== '' ? (string) wp_parse_url( $referer, PHP_URL_HOST ) : '';
+
+		// Any present Origin/Referer must match. A mismatched one is a hard fail —
+		// the loopback exemption below only applies to header-less server-to-server calls.
+		$has_header     = ( $origin_host !== '' || $referer_host !== '' );
+		$matches_origin = ( $origin_host !== '' && strcasecmp( $origin_host, $home_host ) === 0 );
+		$matches_ref    = ( $referer_host !== '' && strcasecmp( $referer_host, $home_host ) === 0 );
+
+		if ( $has_header ) {
+			if ( $matches_origin || $matches_ref ) {
+				return $errors;
+			}
+		} else {
+			$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+			if ( in_array( $ip, [ '127.0.0.1', '::1' ], true ) ) {
+				return $errors;
+			}
+		}
+
+		Logger::block( 'hardening.rest_external_blocked', [
+			'ip'      => isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '',
+			'origin'  => $origin_host,
+			'referer' => $referer_host,
+			'route'   => isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '',
+		] );
+
+		return new \WP_Error(
+			'rest_external_blocked',
+			__( 'REST API requests from outside this site are disabled.', 'richardmedina-security-hardening' ),
+			[ 'status' => 403 ]
+		);
 	}
 
 	/** @param array<string,mixed> $endpoints */

@@ -24,6 +24,7 @@ final class SettingsPage {
 		'harden_disable_plugin_install',
 		'harden_disable_plugin_edit',
 		'harden_disable_core_update',
+		'harden_restrict_rest_external',
 	];
 
 	public function register(): void {
@@ -393,6 +394,10 @@ final class SettingsPage {
 				'label'       => __( 'Disable WordPress core updates (denies update_core)', 'richardmedina-security-hardening' ),
 				'description' => __( 'The Updates screen still loads (so plugin/theme updates remain available), but the core upgrade action is blocked with "Sorry, you are not allowed to update this site."', 'richardmedina-security-hardening' ),
 			],
+			'harden_restrict_rest_external' => [
+				'label'       => __( 'Restrict REST API to same-origin / local requests', 'richardmedina-security-hardening' ),
+				'description' => __( 'Blocks any REST API request whose Origin/Referer doesn\'t match this site, unless it comes from the local server (127.0.0.1). Logged-in admin block editor still works because it\'s same-origin. Will break the WP mobile app, Jetpack, headless / decoupled frontends on a different domain, and any external integration that hits your REST API.', 'richardmedina-security-hardening' ),
+			],
 		];
 
 		$groups = [
@@ -422,6 +427,13 @@ final class SettingsPage {
 					'harden_disable_plugin_install',
 					'harden_disable_plugin_edit',
 					'harden_disable_core_update',
+				],
+			],
+			'api' => [
+				'title' => __( 'API access', 'richardmedina-security-hardening' ),
+				'sub'   => __( 'Lock the REST API to same-origin or local requests.', 'richardmedina-security-hardening' ),
+				'keys'  => [
+					'harden_restrict_rest_external',
 				],
 			],
 		];

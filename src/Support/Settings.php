@@ -35,6 +35,7 @@ final class Settings {
 			'harden_disable_plugin_install' => false,
 			'harden_disable_plugin_edit'    => false,
 			'harden_disable_core_update'    => false,
+			'harden_restrict_rest_external' => false,
 		];
 	}
 
@@ -76,7 +77,7 @@ final class Settings {
 			'harden_remove_generator', 'harden_disable_rest_users',
 			'harden_disable_app_passwords',
 			'harden_disable_plugin_install', 'harden_disable_plugin_edit',
-			'harden_disable_core_update',
+			'harden_disable_core_update', 'harden_restrict_rest_external',
 		];
 
 		foreach ( $bool_keys as $key ) {
