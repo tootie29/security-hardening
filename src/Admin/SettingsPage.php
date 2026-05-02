@@ -359,6 +359,18 @@ final class SettingsPage {
 					<textarea id="rm_sh_param_allow" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[firewall_param_allowlist]" rows="2"><?php echo esc_textarea( $opts['firewall_param_allowlist'] ); ?></textarea>
 					<p class="rm-sh-field__desc"><?php esc_html_e( 'Comma- or newline-separated parameter names that are exempt (e.g. rich text editor fields).', 'richardmedina-security-hardening' ); ?></p>
 				</div>
+				<div class="rm-sh-row">
+					<div class="rm-sh-row__main">
+						<label class="rm-sh-row__label" for="rm-sh-trust-proxy"><?php esc_html_e( 'Trust proxy headers (X-Forwarded-For / CF-Connecting-IP)', 'richardmedina-security-hardening' ); ?></label>
+						<p class="rm-sh-row__desc"><?php esc_html_e( 'OFF (default): use REMOTE_ADDR only when matching the IP allowlist — safe on any non-proxied site. Turn ON only if this site genuinely sits behind a proxy you control (Cloudflare, an Nginx load balancer, etc.). Trusting these headers without an actual proxy in front lets an attacker spoof their IP into the allowlist and bypass block mode.', 'richardmedina-security-hardening' ); ?></p>
+					</div>
+					<div class="rm-sh-row__control">
+						<label class="rm-sh-switch">
+							<input type="checkbox" id="rm-sh-trust-proxy" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[firewall_trust_proxy]" value="1" <?php checked( ! empty( $opts['firewall_trust_proxy'] ) ); ?> />
+							<span class="rm-sh-switch__slider" aria-hidden="true"></span>
+						</label>
+					</div>
+				</div>
 			</div>
 		</div>
 		<?php
@@ -526,6 +538,7 @@ final class SettingsPage {
 				'firewall_mode', 'firewall_check_get', 'firewall_check_post',
 				'firewall_check_cookie', 'firewall_check_headers',
 				'firewall_ip_allowlist', 'firewall_url_allowlist', 'firewall_param_allowlist',
+				'firewall_trust_proxy',
 			],
 			'hardening' => array_merge( self::HARDEN_KEYS, self::HARDEN_TEXT_KEYS ),
 		];

@@ -23,6 +23,7 @@ final class Settings {
 			'firewall_ip_allowlist'    => '',
 			'firewall_url_allowlist'   => "/wp-admin/admin-ajax.php\n/wp-json/",
 			'firewall_param_allowlist' => 'content,post_content,description',
+			'firewall_trust_proxy'     => false,
 
 			// Hardening.
 			'harden_disable_file_edit'      => true,
@@ -73,6 +74,7 @@ final class Settings {
 			'enabled', 'debug_mode',
 			'firewall_check_get', 'firewall_check_post',
 			'firewall_check_cookie', 'firewall_check_headers',
+			'firewall_trust_proxy',
 			'harden_disable_file_edit', 'harden_disable_xmlrpc',
 			'harden_block_php_uploads', 'harden_block_user_enum',
 			'harden_remove_generator', 'harden_disable_rest_users',

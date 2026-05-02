@@ -131,18 +131,29 @@ final class RequestFirewall {
 	}
 
 	private function client_ip(): string {
-		$candidates = [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR' ];
-		foreach ( $candidates as $key ) {
+		// Default: REMOTE_ADDR only. Forwarded headers (X-Forwarded-For, CF-Connecting-IP)
+		// are attacker-controlled on any non-proxied request, and the IP they yield is fed
+		// straight into firewall_ip_allowlist matching — trusting them by default would let
+		// an attacker spoof a whitelisted IP and walk past block mode entirely.
+		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+
+		if ( ! Settings::get( 'firewall_trust_proxy', false ) ) {
+			return ( $remote !== '' && filter_var( $remote, FILTER_VALIDATE_IP ) !== false ) ? $remote : '0.0.0.0';
+		}
+
+		// Trust-proxy mode: consult forwarded headers first, take the chain's first valid IP
+		// (the original client). Only enable this when the site genuinely sits behind a proxy
+		// you control (Cloudflare, an Nginx LB, etc.) — otherwise this re-opens H1.
+		foreach ( [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR' ] as $key ) {
 			if ( empty( $_SERVER[ $key ] ) ) {
 				continue;
 			}
-			$value = (string) $_SERVER[ $key ];
-			$first = trim( explode( ',', $value )[0] );
+			$first = trim( explode( ',', (string) $_SERVER[ $key ] )[0] );
 			if ( filter_var( $first, FILTER_VALIDATE_IP ) !== false ) {
 				return $first;
 			}
 		}
-		return '0.0.0.0';
+		return ( $remote !== '' && filter_var( $remote, FILTER_VALIDATE_IP ) !== false ) ? $remote : '0.0.0.0';
 	}
 
 	private function ip_allowed( string $ip ): bool {
