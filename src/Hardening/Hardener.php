@@ -148,19 +148,23 @@ final class Hardener {
 		$matches_origin = ( $origin_host !== '' && strcasecmp( $origin_host, $home_host ) === 0 );
 		$matches_ref    = ( $referer_host !== '' && strcasecmp( $referer_host, $home_host ) === 0 );
 
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+
 		if ( $has_header ) {
 			if ( $matches_origin || $matches_ref ) {
 				return $errors;
 			}
-		} else {
-			$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '';
-			if ( in_array( $ip, [ '127.0.0.1', '::1' ], true ) ) {
-				return $errors;
-			}
+		} elseif ( in_array( $ip, [ '127.0.0.1', '::1' ], true ) ) {
+			return $errors;
+		}
+
+		// IP allowlist — covers external services (BlogVault, ManageWP, Jetpack, etc.).
+		if ( $ip !== '' && self::ip_allowed( $ip, (string) Settings::get( 'harden_rest_ip_allowlist', '' ) ) ) {
+			return $errors;
 		}
 
 		Logger::block( 'hardening.rest_external_blocked', [
-			'ip'      => isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '',
+			'ip'      => $ip,
 			'origin'  => $origin_host,
 			'referer' => $referer_host,
 			'route'   => isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '',
@@ -250,5 +254,65 @@ final class Hardener {
 	private function uploads_basedir(): string {
 		$uploads = wp_upload_dir( null, false );
 		return ! empty( $uploads['basedir'] ) ? (string) $uploads['basedir'] : '';
+	}
+
+	/**
+	 * Returns true if $ip matches any IP or CIDR entry in the newline/comma-separated allowlist.
+	 * Supports IPv4, IPv6, and CIDR (e.g. 192.0.2.0/24, 2001:db8::/32).
+	 */
+	private static function ip_allowed( string $ip, string $allowlist ): bool {
+		$allowlist = trim( $allowlist );
+		if ( $allowlist === '' ) {
+			return false;
+		}
+		$lines = preg_split( '/[\s,]+/', $allowlist ) ?: [];
+		foreach ( $lines as $entry ) {
+			$entry = trim( $entry );
+			if ( $entry === '' ) {
+				continue;
+			}
+			if ( self::ip_in_entry( $ip, $entry ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static function ip_in_entry( string $ip, string $entry ): bool {
+		if ( ! str_contains( $entry, '/' ) ) {
+			$a = @inet_pton( $ip );
+			$b = @inet_pton( $entry );
+			return $a !== false && $b !== false && $a === $b;
+		}
+
+		[ $subnet, $bits_str ] = explode( '/', $entry, 2 );
+		$bits = (int) $bits_str;
+		if ( $bits < 0 ) {
+			return false;
+		}
+
+		$ip_bin     = @inet_pton( $ip );
+		$subnet_bin = @inet_pton( $subnet );
+		if ( $ip_bin === false || $subnet_bin === false || strlen( $ip_bin ) !== strlen( $subnet_bin ) ) {
+			return false;
+		}
+
+		$max_bits = strlen( $ip_bin ) * 8;
+		if ( $bits > $max_bits ) {
+			return false;
+		}
+
+		$bytes     = intdiv( $bits, 8 );
+		$remainder = $bits % 8;
+
+		if ( $bytes > 0 && substr( $ip_bin, 0, $bytes ) !== substr( $subnet_bin, 0, $bytes ) ) {
+			return false;
+		}
+		if ( $remainder === 0 ) {
+			return true;
+		}
+
+		$mask = chr( ( 0xff << ( 8 - $remainder ) ) & 0xff );
+		return ( $ip_bin[ $bytes ] & $mask ) === ( $subnet_bin[ $bytes ] & $mask );
 	}
 }

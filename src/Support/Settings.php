@@ -36,6 +36,7 @@ final class Settings {
 			'harden_disable_plugin_edit'    => false,
 			'harden_disable_core_update'    => false,
 			'harden_restrict_rest_external' => false,
+			'harden_rest_ip_allowlist'      => '',
 		];
 	}
 
@@ -87,7 +88,7 @@ final class Settings {
 		$mode = $input['firewall_mode'] ?? 'monitor';
 		$clean['firewall_mode'] = in_array( $mode, [ 'off', 'monitor', 'block' ], true ) ? $mode : 'monitor';
 
-		$text_keys = [ 'firewall_ip_allowlist', 'firewall_url_allowlist', 'firewall_param_allowlist' ];
+		$text_keys = [ 'firewall_ip_allowlist', 'firewall_url_allowlist', 'firewall_param_allowlist', 'harden_rest_ip_allowlist' ];
 		foreach ( $text_keys as $key ) {
 			$value = isset( $input[ $key ] ) ? (string) $input[ $key ] : '';
 			$clean[ $key ] = sanitize_textarea_field( $value );

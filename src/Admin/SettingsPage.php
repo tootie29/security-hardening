@@ -27,6 +27,14 @@ final class SettingsPage {
 		'harden_restrict_rest_external',
 	];
 
+	/**
+	 * Hardening text fields (kept separate from HARDEN_KEYS so the Status overview
+	 * count only reflects toggles, not free-text fields).
+	 */
+	private const HARDEN_TEXT_KEYS = [
+		'harden_rest_ip_allowlist',
+	];
+
 	public function register(): void {
 		add_action( 'admin_menu', [ $this, 'register_menu' ] );
 		add_action( 'admin_init', [ $this, 'register_settings' ] );
@@ -438,7 +446,7 @@ final class SettingsPage {
 			],
 		];
 
-		foreach ( $groups as $group ) :
+		foreach ( $groups as $group_id => $group ) :
 			?>
 			<div class="rm-sh-section">
 				<div class="rm-sh-section__head">
@@ -446,7 +454,8 @@ final class SettingsPage {
 					<p class="rm-sh-section__sub"><?php echo esc_html( $group['sub'] ); ?></p>
 				</div>
 				<div class="rm-sh-section__body">
-					<?php foreach ( $group['keys'] as $key ) :
+					<?php
+					foreach ( $group['keys'] as $key ) {
 						$row = $rows[ $key ];
 						$this->render_toggle_row(
 							$key,
@@ -454,11 +463,40 @@ final class SettingsPage {
 							$row['description'] ?? '',
 							! empty( $opts[ $key ] )
 						);
-					endforeach; ?>
+					}
+
+					if ( $group_id === 'api' ) {
+						$this->render_rest_ip_allowlist_field( $opts );
+					}
+					?>
 				</div>
 			</div>
 			<?php
 		endforeach;
+	}
+
+	private function render_rest_ip_allowlist_field( array $opts ): void {
+		$value = (string) ( $opts['harden_rest_ip_allowlist'] ?? '' );
+		?>
+		<div class="rm-sh-field">
+			<label class="rm-sh-field__label" for="rm-sh-rest-ip-allow"><?php esc_html_e( 'IP allowlist (only used when the toggle above is on)', 'richardmedina-security-hardening' ); ?></label>
+			<textarea id="rm-sh-rest-ip-allow" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[harden_rest_ip_allowlist]" rows="6" placeholder="192.0.2.1&#10;198.51.100.0/24&#10;2001:db8::/32"><?php echo esc_textarea( $value ); ?></textarea>
+			<p class="rm-sh-field__desc">
+				<?php esc_html_e( 'One IP or CIDR per line. Requests from these addresses bypass the same-origin check so legitimate external services keep working — e.g. BlogVault migration / backup, ManageWP, Jetpack workers.', 'richardmedina-security-hardening' ); ?>
+				<br>
+				<?php esc_html_e( 'Matching uses REMOTE_ADDR (not X-Forwarded-For), so it sees what your server actually receives. If the site is behind a CDN/proxy, allowlist the proxy\'s IPs and check Diagnostics for the address your server logs.', 'richardmedina-security-hardening' ); ?>
+				<br>
+				<?php
+				printf(
+					/* translators: 1, 2: external links */
+					esc_html__( 'BlogVault publishes their IPs at %1$s. ManageWP at %2$s.', 'richardmedina-security-hardening' ),
+					'<a href="https://blogvault.net/blogvault-ip-addresses/" target="_blank" rel="noopener">blogvault.net</a>',
+					'<a href="https://managewp.com/user-guide/general/ip-addresses-used-by-managewp" target="_blank" rel="noopener">managewp.com</a>'
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 	private function render_toggle_row( string $key, string $label, string $description, bool $checked ): void {
@@ -489,7 +527,7 @@ final class SettingsPage {
 				'firewall_check_cookie', 'firewall_check_headers',
 				'firewall_ip_allowlist', 'firewall_url_allowlist', 'firewall_param_allowlist',
 			],
-			'hardening' => self::HARDEN_KEYS,
+			'hardening' => array_merge( self::HARDEN_KEYS, self::HARDEN_TEXT_KEYS ),
 		];
 
 		foreach ( $by_tab as $tab => $keys ) {
