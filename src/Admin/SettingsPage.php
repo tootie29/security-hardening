@@ -127,57 +127,116 @@ final class SettingsPage {
 
 		$opts = Settings::all();
 		?>
-		<div class="wrap rm-sh-wrap">
+		<div class="wrap rm-sh-wrap rm-sh-wrap--v2">
 			<h1 class="screen-reader-text"><?php esc_html_e( 'RichardMedina Security Hardening', 'richardmedina-security-hardening' ); ?></h1>
 
 			<?php $this->render_header( $opts ); ?>
 
 			<?php if ( isset( $_GET['updated'] ) && $_GET['updated'] === 'reset' ) : ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Settings reset to defaults.', 'richardmedina-security-hardening' ); ?></p></div>
+				<div class="notice notice-success is-dismissible rm-sh-notice"><p><?php esc_html_e( 'Settings reset to defaults.', 'richardmedina-security-hardening' ); ?></p></div>
 			<?php endif; ?>
 
-			<h2 class="nav-tab-wrapper">
-				<?php foreach ( $tabs as $key => $label ) :
-					$url   = add_query_arg( [ 'page' => self::PAGE_SLUG, 'tab' => $key ], admin_url( 'options-general.php' ) );
-					$class = 'nav-tab' . ( $active === $key ? ' nav-tab-active' : '' );
-					?>
-					<a href="<?php echo esc_url( $url ); ?>" class="<?php echo esc_attr( $class ); ?>"><?php echo esc_html( $label ); ?></a>
-				<?php endforeach; ?>
-			</h2>
+			<div class="rm-sh-shell">
+				<?php $this->render_sidebar_nav( $tabs, $active ); ?>
 
-			<?php if ( $active === 'diagnostics' ) : ?>
-				<?php $this->render_diagnostics(); ?>
-			<?php else : ?>
-				<form action="options.php" method="post">
-					<?php settings_fields( self::GROUP ); ?>
-					<input type="hidden" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[__current_tab]" value="<?php echo esc_attr( $active ); ?>" />
+				<main class="rm-sh-main">
+					<?php if ( $active === 'diagnostics' ) : ?>
+						<?php $this->render_diagnostics(); ?>
+					<?php else : ?>
+						<form id="rm-sh-form" action="options.php" method="post" data-rm-sh-form>
+							<?php settings_fields( self::GROUP ); ?>
+							<input type="hidden" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[__current_tab]" value="<?php echo esc_attr( $active ); ?>" />
 
-					<?php
-					$this->render_hidden_for_inactive_tabs( $active, $opts );
+							<?php
+							$this->render_hidden_for_inactive_tabs( $active, $opts );
 
-					if ( $active === 'status' ) {
-						$this->render_status_tab( $opts );
-					} elseif ( $active === 'firewall' ) {
-						$this->render_firewall_tab( $opts );
-					} elseif ( $active === 'hardening' ) {
-						$this->render_hardening_tab( $opts );
-					}
-					?>
+							if ( $active === 'status' ) {
+								$this->render_status_tab( $opts );
+							} elseif ( $active === 'firewall' ) {
+								$this->render_firewall_tab( $opts );
+							} elseif ( $active === 'hardening' ) {
+								$this->render_hardening_tab( $opts );
+							}
+							?>
 
-					<div class="rm-sh-form-actions">
-						<?php submit_button( __( 'Save Changes', 'richardmedina-security-hardening' ), 'primary', 'submit', false ); ?>
+							<div class="rm-sh-form-actions rm-sh-form-actions--inline">
+								<?php submit_button( __( 'Save changes', 'richardmedina-security-hardening' ), 'primary', 'submit', false, [ 'data-rm-sh-save' => '1' ] ); ?>
+								<button type="reset" class="button button-link rm-sh-discard" data-rm-sh-discard><?php esc_html_e( 'Discard', 'richardmedina-security-hardening' ); ?></button>
+							</div>
+						</form>
+
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rm-sh-reset-form" onsubmit="return confirm('<?php echo esc_js( __( 'Reset all RichardMedina Security Hardening settings to defaults?', 'richardmedina-security-hardening' ) ); ?>');">
+							<?php wp_nonce_field( 'rm_sh_reset' ); ?>
+							<input type="hidden" name="action" value="rm_sh_reset_defaults" />
+							<?php submit_button( __( 'Reset to defaults', 'richardmedina-security-hardening' ), 'delete', 'submit', false ); ?>
+						</form>
+					<?php endif; ?>
+				</main>
+			</div>
+
+			<?php if ( $active !== 'diagnostics' ) : ?>
+				<div class="rm-sh-savebar" data-rm-sh-savebar hidden>
+					<div class="rm-sh-savebar__inner">
+						<p class="rm-sh-savebar__msg">
+							<span class="rm-sh-savebar__dot" aria-hidden="true"></span>
+							<?php esc_html_e( 'You have unsaved changes', 'richardmedina-security-hardening' ); ?>
+						</p>
+						<div class="rm-sh-savebar__actions">
+							<button type="button" class="button" data-rm-sh-discard><?php esc_html_e( 'Discard', 'richardmedina-security-hardening' ); ?></button>
+							<button type="submit" class="button button-primary" form="rm-sh-form"><?php esc_html_e( 'Save changes', 'richardmedina-security-hardening' ); ?></button>
+						</div>
 					</div>
-				</form>
-
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rm-sh-form-actions" onsubmit="return confirm('<?php echo esc_js( __( 'Reset all RichardMedina Security Hardening settings to defaults?', 'richardmedina-security-hardening' ) ); ?>');">
-					<?php wp_nonce_field( 'rm_sh_reset' ); ?>
-					<input type="hidden" name="action" value="rm_sh_reset_defaults" />
-					<?php submit_button( __( 'Reset to defaults', 'richardmedina-security-hardening' ), 'delete', 'submit', false ); ?>
-				</form>
+				</div>
 			<?php endif; ?>
 
 			<?php $this->render_footer(); ?>
 		</div>
+		<?php
+	}
+
+	private function render_sidebar_nav( array $tabs, string $active ): void {
+		$icons = [
+			'status'      => '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
+			'firewall'    => '<path d="M3 12h18"/><path d="M12 3v18"/><path d="M5 5l14 14"/><path d="M19 5L5 19"/>',
+			'hardening'   => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+			'diagnostics' => '<path d="M3 13h4l3-9 4 18 3-9h4"/>',
+		];
+		?>
+		<aside class="rm-sh-nav" aria-label="<?php esc_attr_e( 'Settings sections', 'richardmedina-security-hardening' ); ?>">
+			<ul class="rm-sh-nav__list">
+				<?php foreach ( $tabs as $key => $label ) :
+					$url       = add_query_arg(
+						[ 'page' => self::PAGE_SLUG, 'tab' => $key ],
+						admin_url( 'options-general.php' )
+					);
+					$is_active = ( $active === $key );
+					$icon      = $icons[ $key ] ?? '';
+					?>
+					<li class="rm-sh-nav__item">
+						<a
+							href="<?php echo esc_url( $url ); ?>"
+							class="rm-sh-nav__link<?php echo $is_active ? ' is-active' : ''; ?>"
+							<?php echo $is_active ? 'aria-current="page"' : ''; ?>
+						>
+							<span class="rm-sh-nav__icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><?php echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></svg>
+							</span>
+							<span class="rm-sh-nav__label"><?php echo esc_html( $label ); ?></span>
+							<span class="rm-sh-nav__chevron" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+							</span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+			<div class="rm-sh-nav__footer">
+				<p class="rm-sh-nav__footer-label"><?php esc_html_e( 'Need help?', 'richardmedina-security-hardening' ); ?></p>
+				<a class="rm-sh-nav__footer-link" href="https://richardmedina.com.au/plugins/richardmedina-security-hardening" target="_blank" rel="noopener">
+					<?php esc_html_e( 'Documentation', 'richardmedina-security-hardening' ); ?>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><polyline points="9 7 17 7 17 15"/></svg>
+				</a>
+			</div>
+		</aside>
 		<?php
 	}
 
@@ -192,22 +251,28 @@ final class SettingsPage {
 		[ $mode_class, $mode_label ] = $this->mode_pill( $mode );
 
 		?>
-		<div class="rm-sh-header">
-			<div class="rm-sh-header__brand">
-				<span class="rm-sh-header__icon" aria-hidden="true">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+		<header class="rm-sh-pageheader">
+			<div class="rm-sh-pageheader__brand">
+				<span class="rm-sh-pageheader__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
 				</span>
-				<div>
-					<h2 class="rm-sh-header__title"><?php esc_html_e( 'RichardMedina Security Hardening', 'richardmedina-security-hardening' ); ?></h2>
-					<p class="rm-sh-header__sub"><?php esc_html_e( 'Request firewall and hardening toggles for WordPress', 'richardmedina-security-hardening' ); ?></p>
+				<div class="rm-sh-pageheader__text">
+					<p class="rm-sh-pageheader__eyebrow"><?php esc_html_e( 'RichardMedina', 'richardmedina-security-hardening' ); ?></p>
+					<h2 class="rm-sh-pageheader__title"><?php esc_html_e( 'Security Hardening', 'richardmedina-security-hardening' ); ?></h2>
+					<p class="rm-sh-pageheader__sub"><?php esc_html_e( 'Request firewall and hardening toggles for WordPress.', 'richardmedina-security-hardening' ); ?></p>
 				</div>
 			</div>
-			<div class="rm-sh-header__meta">
-				<span class="rm-sh-pill rm-sh-pill--neutral">v<?php echo esc_html( RM_SH_VERSION ); ?></span>
-				<span class="rm-sh-pill <?php echo esc_attr( $mode_class ); ?>"><?php echo esc_html( sprintf( __( 'Firewall: %s', 'richardmedina-security-hardening' ), $mode_label ) ); ?></span>
-				<span class="rm-sh-pill <?php echo esc_attr( $status_class ); ?>"><span class="rm-sh-pill__dot"></span><?php echo esc_html( $status_label ); ?></span>
+			<div class="rm-sh-pageheader__meta">
+				<span class="rm-sh-pill rm-sh-pill--neutral rm-sh-pill--ghost"><?php echo esc_html( 'v' . RM_SH_VERSION ); ?></span>
+				<span class="rm-sh-pill <?php echo esc_attr( $mode_class ); ?>" title="<?php esc_attr_e( 'Firewall mode', 'richardmedina-security-hardening' ); ?>">
+					<svg class="rm-sh-pill__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18"/><path d="M12 3v18"/></svg>
+					<?php echo esc_html( $mode_label ); ?>
+				</span>
+				<span class="rm-sh-pill <?php echo esc_attr( $status_class ); ?>" title="<?php esc_attr_e( 'Plugin status', 'richardmedina-security-hardening' ); ?>">
+					<span class="rm-sh-pill__dot"></span><?php echo esc_html( $status_label ); ?>
+				</span>
 			</div>
-		</div>
+		</header>
 		<?php
 	}
 

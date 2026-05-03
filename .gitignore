@@ -26,3 +26,6 @@ Thumbs.db
 
 # Plugin runtime artifacts (these belong to the install, not the repo)
 /languages/*.mo
+
+# Local pre-redesign / pre-mutation snapshots (revert-only, not source)
+/_backup/

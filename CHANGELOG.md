@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.2.0-beta — 2026-05-03
+
+### Admin UX (redesign — pending review)
+- **Layout shift to vertical sidebar nav.** Settings sections (Status / Firewall / Hardening / Diagnostics) moved from horizontal nav-tabs to a sticky left sidebar with icons, active-state indicator, and chevron on the active item. Two-column shell at >=1024px viewport, collapses to a horizontal pill nav on tablet, vertical stack on phone. Documentation link surfaced in the sidebar footer.
+- **Refreshed page header.** Replaced dark navy gradient with a light surface card. Square shield mark on an indigo gradient badge, RichardMedina eyebrow + title + description, version + firewall-mode + status pills aligned right with consistent semantic colours.
+- **Refined card / section styling.** Stat cards have a subtle indigo gradient strip across the top, lift on hover. Section heads use a gradient white→slate-50 background. Setting rows have a hover wash.
+- **Sticky save bar** (Linear / Vercel / Stripe pattern). When the form is dirty, a pill-shaped dark bar appears at the bottom of the viewport with a pulsing amber dot, "Discard" and "Save changes" buttons. Warns on tab close when dirty (`beforeunload`).
+- **Toggle switches refined**: indigo accent when on, larger 42×24 surface.
+- **Inspect-checkbox group** rendered as filled chips that highlight when checked, replacing plain inline checkboxes.
+- **Form inputs**: bordered, slate-200 default, indigo focus ring, monospace textarea for IP / URL / param allowlists.
+- **Reset button** moved into a "danger zone" surface separated from the primary form actions.
+- **Scoped design tokens** (`--rm-sh-*`) replace hard-coded hex values throughout.
+
+### Backed up to revert
+Pre-redesign files (v0.1.1) saved at `_backup/v0.1.1-pre-redesign-{timestamp}/` inside the plugin directory.
+
+### Unchanged
+- All form `name=` attributes, `Settings::sanitize` contract, `register_setting` group, hidden-fields-for-inactive-tabs strategy. The redesign is render-layer only — settings round-trip is identical.
+- Diagnostics tab content, copy-to-clipboard JS, plugin row "Settings" link, reset-defaults handler.
+
 ## 0.1.1 — 2026-05-03
 
 ### Security
